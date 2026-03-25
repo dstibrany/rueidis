@@ -285,6 +285,12 @@ type ClientOption struct {
 	// AZFromInfo forces the `availability_zone` field to be taken from an INFO command instead of HELLO.
 	// Primarily used for AWS MemoryDB.
 	AZFromInfo bool
+
+	// PipelineDepthRecorder is an optional callback invoked on every pipelined Do or DoMulti call.
+	// It receives the number of commands already queued at the moment this call arrived (pre-increment depth).
+	// The callback must be non-blocking and is called on the hot path, so it should complete in nanoseconds.
+	// A nil value disables recording.
+	PipelineDepthRecorder func(depth uint32)
 }
 
 // SentinelOption contains MasterSet,
