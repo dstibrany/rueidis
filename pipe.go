@@ -94,7 +94,7 @@ type pipe struct {
 	r2ps            bool // identify this pipe is used for resp2 pubsub or not
 	noNoDelay       bool
 	optIn           bool
-	depthRecorder   func(uint32)
+	depthRecorder   func(waits, recvs uint32)
 }
 
 type pipeFn func(ctx context.Context, connFn func(ctx context.Context) (net.Conn, error), option *ClientOption) (p *pipe, err error)
@@ -966,7 +966,7 @@ func (p *pipe) Do(ctx context.Context, cmd Completed) (resp RedisResult) {
 	}
 	waits := p.incrWaits() // if this is 1, and the background worker is not started, no need to queue
 	if p.depthRecorder != nil {
-		p.depthRecorder(waits - 1)
+		p.depthRecorder(waits-1, uint32(p.loadRecvs()))
 	}
 	state := atomic.LoadInt32(&p.state)
 
@@ -1078,7 +1078,7 @@ func (p *pipe) DoMulti(ctx context.Context, multi ...Completed) *redisresults {
 
 	waits := p.incrWaits() // if this is 1, and the background worker is not started, no need to queue
 	if p.depthRecorder != nil {
-		p.depthRecorder(waits - 1)
+		p.depthRecorder(waits-1, uint32(p.loadRecvs()))
 	}
 	state := atomic.LoadInt32(&p.state)
 

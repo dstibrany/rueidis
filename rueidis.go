@@ -287,10 +287,12 @@ type ClientOption struct {
 	AZFromInfo bool
 
 	// PipelineDepthRecorder is an optional callback invoked on every pipelined Do or DoMulti call.
-	// It receives the number of commands already queued at the moment this call arrived (pre-increment depth).
+	// It receives a snapshot of the pipeline state at the moment this call arrived:
+	//   waits - commands queued but not yet written to the wire (pre-increment, excludes the current command)
+	//   recvs - commands written to the wire and awaiting a response
 	// The callback must be non-blocking and is called on the hot path, so it should complete in nanoseconds.
 	// A nil value disables recording.
-	PipelineDepthRecorder func(depth uint32)
+	PipelineDepthRecorder func(waits, recvs uint32)
 }
 
 // SentinelOption contains MasterSet,
